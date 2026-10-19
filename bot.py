@@ -2,18 +2,13 @@ import asyncio
 import os
 import random
 import subprocess
-import requests
 from pyrogram import Client, filters
 from pyrogram.types import Message
 
-# --- SECURE CONFIGURATION (Render Environment Variables se uthayega) ---
+# --- SECURE CONFIGURATION ---
 API_ID = int(os.environ.get("API_ID", 0))
 API_HASH = os.environ.get("API_HASH", "")
 BOT_TOKEN = os.environ.get("BOT_TOKEN", "")
-
-# Facebook Page Credentials (Render Environment Variables me set karein)
-FB_PAGE_ID = os.environ.get("FB_PAGE_ID", "")
-FB_ACCESS_TOKEN = os.environ.get("FB_ACCESS_TOKEN", "")
 
 app = Client(
     "facebook_bypass_bot",
@@ -81,26 +76,11 @@ def pro_anti_copyright_process(input_path, output_path):
   subprocess.run(command, check=True)
 
 
-def upload_video_to_facebook_page(video_path, caption):
-  """Facebook Graph API se Video ko Draft/Unpublished Mode me upload karta hai."""
-  url = f"https://graph-video.facebook.com/v19.0/{FB_PAGE_ID}/videos"
-  payload = {
-      "description": caption,
-      "published": "false",  # Draft mode (Owner baad me public karega)
-      "access_token": FB_ACCESS_TOKEN,
-  }
-
-  with open(video_path, "rb") as video_file:
-    files = {"source": video_file}
-    response = requests.post(url, data=payload, files=files)
-    return response.json()
-
-
 @app.on_message(filters.command("start"))
 async def start_cmd(client, message: Message):
   await message.reply_text(
-      "👋 **Welcome!**\n\nRender Cloud Par Telegram-to-Facebook Page Auto-Upload"
-      " Bot Active Hai!"
+      "👋 **Welcome!**\n\nAnti-Copyright Video Processing Bot is Active!\n\nMujhe"
+      " koi bhi video bhejein, main process karke wapas bhej dunga."
   )
 
 
@@ -126,27 +106,20 @@ async def handle_video(client, message: Message):
     )
 
     await status_msg.edit_text(
-        "📤 **Processing Complete! Facebook Page par Draft upload ho raha"
-        " hai...**"
+        "📤 **Processing Complete! Video bheja ja raha hai...**"
     )
 
     caption = (
-        "🎬 New Movie Clip\n\n- Watermark: @filmyhubofficial\n- Status:"
-        " Anti-Copyright Processed"
+        "✅ **Processed Anti-Copyright Video Ready!**\n\n- Watermark:"
+        " `@filmyhubofficial`\n- Metadata: 100% Stripped\n- God-Mode Filters"
+        " Applied"
     )
 
-    # Facebook Page upload
-    fb_response = upload_video_to_facebook_page(output_file, caption)
-
-    if "id" in fb_response:
-      await status_msg.edit_text(
-          "✅ **Facebook Page Par Successful Draft Upload Ho Gaya!**\n\nAap Meta"
-          " Business Suite khol kar video publish kar sakte hain."
-      )
-    else:
-      await status_msg.edit_text(
-          f"⚠️ **Facebook Upload Error:** `{str(fb_response)}`"
-      )
+    # Processed video seedha aapko Telegram par wapas mil jayegi
+    await message.reply_video(
+        video=output_file, caption=caption, supports_streaming=True
+    )
+    await status_msg.delete()
 
   except Exception as e:
     await status_msg.edit_text(f"❌ **Error Aaya:** `{str(e)}`")
@@ -158,6 +131,6 @@ async def handle_video(client, message: Message):
 
 
 if __name__ == "__main__":
-  print("🤖 Render Bot Active & Running!")
+  print("🤖 Telegram Bot Active & Running!")
   app.run()
-  
+    
